@@ -22,7 +22,7 @@ checkpoint_callback2 = ModelCheckpoint(
 logger = CSVLogger(save_dir='/home/igardner/traintest/', name='potentiallogs')
 # training loop
 
-trainer = pl.Trainer(max_epochs=EPOCHS, logger=logger, check_val_every_n_epoch=10, strategy='ddp_find_unused_parameters_true',
+trainer = pl.Trainer(max_epochs=30, limit_train_batches=50, limit_val_batches=10, logger=logger, check_val_every_n_epoch=10, strategy='ddp_find_unused_parameters_true',
                      callbacks=[checkpoint_callback2], devices=2, accelerator="gpu")
 
 potentialmodel = LitModel(pe="potential")

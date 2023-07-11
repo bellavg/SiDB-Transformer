@@ -54,7 +54,7 @@ class SiDBTransformer(nn.Module):
             del dis_pos
         elif self.pe_type == "potential":
             elpot = get_potential(x.clone().detach(), b, gs)
-            x = x +  elpot
+            x = x +  elpot.to(x.device)
             x = self.drop(x)
             del elpot
 

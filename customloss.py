@@ -14,7 +14,7 @@ import pandas as pd
 
 # add muliplication by nj charge to the potential matrix
 def get_potential(x, b, gridsize):
-    epbs_matrix = torch.load("/home/igardner/SiDBTransformer/electric_potential_matrix.pth") #size 42, 42, 1764
+    epbs_matrix = torch.load("/home/igardner/finSiDBTransformer/electric_potential_matrix.pth") #size 42, 42, 1764
     x = x.squeeze(-1)
 
     epbs_out = torch.zeros(b, gridsize, gridsize, MAXDBS)
