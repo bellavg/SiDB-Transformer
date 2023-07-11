@@ -9,7 +9,7 @@ import MinkowskiEngine as ME
 
 
 class SiDBTransformer(nn.Module):
-    def __init__(self,  embeddim, position_info, depth, heads,
+    def __init__(self,   position_info, embeddim,  depth, heads,
                   d_rate, input_dim=1, gridsize=GRIDSIZE, num_classes=2):
         super().__init__()
 

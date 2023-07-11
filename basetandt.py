@@ -5,7 +5,7 @@ from datasetload import train_loader, test_loader, valid_loader
 from lightningwrapper import LitModel
 from pytorch_lightning.loggers import CSVLogger
 from hyperparameters import EPOCHS
-from old.basetest import get_classification_report
+from customloss import get_classification_report
 
 torch.cuda.empty_cache()
 

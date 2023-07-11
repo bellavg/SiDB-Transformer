@@ -19,20 +19,20 @@ def get_accuracy(outputs, targets):
 class LitModel(pl.LightningModule):
     def __init__(self,  pe):
         super().__init__()
-        self.transformer = SiDBTransformer( pe, input_dim=INPUTCHANNELS,
+        self.transformer = SiDBTransformer(position_info= pe, input_dim=INPUTCHANNELS,
                                            depth=DEPTH, embeddim=EMBEDDIM,
                                            heads=HEADS,
                                            gridsize=GRIDSIZE, d_rate=DO)
         self.opname = "Adam"
         self.lr = LEARNINGRATE
         self.wd = WEIGHTDECAY
-        self.lossfn = FocalLoss(gamma=2.0, ignore_index=-1, weights=torch.tensor([2.0, 3.0]).to(self.device))
+        self.lossfn = FocalLoss(gamma=2.0, ignore_index=-1, weights=torch.tensor([2.0, 3.0]).cuda())
 
     def training_step(self, batch, batch_idx):
         x, targets = batch
-        targets = targets.reshape(-1).to(x.device)
+        targets = targets.reshape(-1).to(self.device)
         outputs = self.transformer(x)
-        loss = self.lossfn(outputs, targets)  # check sizes should be b, 2, 42, 42 and b, 42, 42
+        loss = self.lossfn(outputs.cuda(), targets.cuda())  # check sizes should be b, 2, 42, 42 and b, 42, 42
         self.log("train_loss", loss, logger=True, on_epoch=True, on_step=False, sync_dist=True)
         return loss
 
