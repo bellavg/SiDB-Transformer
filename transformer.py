@@ -9,18 +9,20 @@ import MinkowskiEngine as ME
 
 
 class SiDBTransformer(nn.Module):
-    def __init__(self,   position_info, embeddim,  depth, heads,
+    def __init__(self,  embeddim, position_info, depth, heads,
                   d_rate, input_dim=1, gridsize=GRIDSIZE, num_classes=2):
         super().__init__()
 
         self.pe_type = position_info
+
+        self.norm = ME.MinkowskiBatchNorm(num_features=embeddim)
 
         self.tblocks = nn.ModuleList(
             [Block(h=heads, pe=position_info, ed=embeddim, d_rate=d_rate) for _ in range(depth)])
 
         self.to_probs = ME.MinkowskiLinear(embeddim, num_classes)
 
-        self.softmax = nn.Softmax(dim=1)
+        #self.softmax = nn.LogSoftmax(dim=1)
         self.sig = nn.Sigmoid()
 
         self.medrop = ME.MinkowskiDropout(d_rate)
@@ -31,7 +33,6 @@ class SiDBTransformer(nn.Module):
 
         self.to_linprobs = nn.Linear(embeddim, num_classes)
 
-        self.embedconv = ME.MinkowskiConvolution(in_channels=input_dim, out_channels=embeddim, bias=True, kernel_size=3, dimension=2)
 
 
         self.embed = ME.MinkowskiLinear(in_features=input_dim, out_features=embeddim, bias=True)
@@ -54,7 +55,7 @@ class SiDBTransformer(nn.Module):
             del dis_pos
         elif self.pe_type == "potential":
             elpot = get_potential(x.clone().detach(), b, gs)
-            x = x +  elpot.to(x.device)
+            x = x +  elpot
             x = self.drop(x)
             del elpot
 
@@ -95,17 +96,19 @@ class SiDBTransformer(nn.Module):
             x = blk(x, nzmask, b, gs)
 
         #print(x)
+        x = self.norm(x)
 
 
         x,_,_ = x.dense(shape=torch.Size([b,  x.shape[-1], gs, gs])) #2 is number of classes
 
-        #X = self.norm(x)
+
         x = self.to_linprobs(x.permute(0, 2, 3, 1).contiguous().view(-1, e))
 
 
         #print(x)
 
-        x = self.softmax(x) #check size
+        x = self.sig(x) #check size
 
 
         return x #check size
+
