@@ -14,11 +14,11 @@ checkpoint_callback2 = ModelCheckpoint(
     monitor="val_acc",
     every_n_epochs=10,
     mode="max",
-    dirpath="/home/igardner/smalltest/baselogssmall/",
+    dirpath="/home/igardner/newresults/baselogs/",
     filename="bestbase",
 )
 
-logger = CSVLogger(save_dir='/home/igardner/smalltest/', name='baselogssmall')
+logger = CSVLogger(save_dir='/home/igardner/newresults/', name='baselogs')
 # training loop
 
 trainer = pl.Trainer(max_epochs=EPOCHS, logger=logger, check_val_every_n_epoch=10, strategy='ddp_find_unused_parameters_true',
@@ -27,14 +27,14 @@ trainer = pl.Trainer(max_epochs=EPOCHS, logger=logger, check_val_every_n_epoch=1
 basemodel = LitModel(pe="base")
 trainer.fit(model=basemodel, train_dataloaders=train_loader, val_dataloaders=valid_loader)
 
-trainer.test(model=basemodel, dataloaders=test_loader, verbose=True, ckpt_path="/home/igardner/smalltest/baselogssmall/bestbase.ckpt")
+trainer.test(model=basemodel, dataloaders=test_loader, verbose=True, ckpt_path="/home/igardner/newresults/baselogs/bestbase.ckpt")
 
 targets = torch.cat(basemodel.testtarget)
 predictions = torch.cat(basemodel.testpred)
 
 dataframe = get_classification_report(targets, predictions)
 
-dataframe.to_csv("/home/igardner/smalltest/baselogssmall/testclassificationreport.csv")
+dataframe.to_csv("/home/igardner/newresults/baselogs/testclassificationreport.csv")
 
 
 
