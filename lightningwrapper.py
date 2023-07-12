@@ -1,3 +1,4 @@
+import time
 import pytorch_lightning as pl
 import torch
 from focal_loss.focal_loss import FocalLoss
@@ -5,7 +6,7 @@ from transformer import SiDBTransformer
 from hyperparameters import *
 import gc
 import torch.nn as nn
-
+from torch import Tensor
 
 def get_accuracy(outputs, targets):
     mask = targets >= 0
@@ -26,6 +27,9 @@ class LitModel(pl.LightningModule):
         self.opname = "Adam"
         self.lr = LEARNINGRATE
         self.wd = WEIGHTDECAY
+        self.accuracylist = []
+        self.dbs = []
+        self.runtime = []
         self.lossfn = FocalLoss(gamma=2.0, ignore_index=-1, weights=torch.tensor([2.0, 3.0]).cuda())
 
     def training_step(self, batch, batch_idx):
@@ -54,9 +58,13 @@ class LitModel(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         torch.cuda.empty_cache()
         x, targets = batch
+        targets = targets.reshape(-1).to(x.device)
+        start_time = time.time()
         outputs = self.transformer(x)
         accuracy, pred, masked_target = get_accuracy(outputs, targets)
+        end_time = time.time()
         self.log("test accuracy", accuracy, prog_bar=True, logger=True, on_epoch=True, sync_dist=True)
-        self.testpred.append(torch.Tensor.cpu(pred))
-        self.testtarget.append(torch.Tensor.cpu(masked_target))
+        self.accuracylist.append(Tensor.cpu(accuracy))
+        self.dbs.append((len(pred)))
+        self.runtime.append(end_time-start_time)
         return accuracy

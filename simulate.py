@@ -4,7 +4,7 @@ from datetime import timedelta
 from fiction.pyfiction import *
 
 # path to the layouts folder
-BENCH_ROOT = "/home/marcel/git/mnt-sidb-bench/random_layouts/"
+BENCH_ROOT = "/home/igardner/finSiDBTransformer/bella_layouts/"
 # lower bound of SiDB concentration to simulate
 LOWER_BOUND_SIDBS = 1
 # upper bound of SiDB concentration to simulate (inclusive)
