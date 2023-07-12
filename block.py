@@ -37,7 +37,6 @@ class Block(nn.Module):
         self.medrop = me.MinkowskiDropout(d_rate)
 
 
-
     def forward(self, x, mask, b, gs):
 
         x = x + me.SparseTensor(features=self.attn(self.norm1(x), b, gs, mask),
