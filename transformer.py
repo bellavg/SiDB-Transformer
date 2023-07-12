@@ -73,16 +73,6 @@ class SiDBTransformer(nn.Module):
 
         nzmask = nzmask.unsqueeze(-1).repeat(1, x.shape[-1])
 
-        if self.pe_type == "AN":
-            pos = positionalencoding2d(x.shape[-1], gs, gs, b)  # returns  embedded  sin/cosine
-            pos = pos.reshape(-1, x.shape[-1]).to(x.device)
-            pos = pos[nzmask].view(x.shape)
-            pos = ME.SparseTensor(features=pos.to(x.device), coordinates=x.coordinates,
-                                  coordinate_manager=x.coordinate_manager, quantization_mode=quantization_mode)
-            x = x + pos
-            x = self.medrop(x)
-            del pos
-
         if self.pe_type == "base":
             pos = self.get_pos(b)  # returns cardinal coordinates embedded
             pos = pos.reshape(-1, x.shape[-1]).to(x.device)
