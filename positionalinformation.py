@@ -25,64 +25,7 @@ class BaseAbsPE(nn.Module):
 
 
 
-class AIAYNPE(nn.Module):
-    def __init__(self, embedding_dim, grid_size):
-        super(AIAYNPE, self).__init__()
-
-        self.embedding_dim = embedding_dim
-        self.grid_size = grid_size
-
-    def forward(self, batch_size):
-        embedding_dim = self.embedding_dim
-        gs = self.grid_size
-        div_term = torch.exp(
-            torch.arange(0, embedding_dim, 2).float() * (
-                    -torch.log(torch.tensor(10000.0)) / embedding_dim))
-
-        pos_x = torch.arange(gs).unsqueeze(0).repeat(gs, 1).view(-1, 1)
-        pos_y = torch.arange(gs).unsqueeze(1).repeat(1, gs).view(-1, 1)
-
-        positional_encodings_x = torch.zeros(gs * gs, embedding_dim)
-        positional_encodings_y = torch.zeros(gs * gs, embedding_dim)
-
-        positional_encodings_x[:, 0::2] = torch.sin(pos_x.float() / div_term)
-        positional_encodings_x[:, 1::2] = torch.cos(pos_x.float() / div_term)
-
-        positional_encodings_y[:, 0::2] = torch.sin(pos_y.float() / div_term)
-        positional_encodings_y[:, 1::2] = torch.cos(pos_y.float() / div_term)
-
-        positional_encodings_x = positional_encodings_x.view(1, gs, gs, embedding_dim).repeat(batch_size, 1, 1, 1)
-        positional_encodings_y = positional_encodings_y.view(1, gs, gs, embedding_dim).repeat(batch_size, 1, 1, 1)
-
-        return positional_encodings_x + positional_encodings_y
-
-
-def positionalencoding2d(d_model, height, width, batch_size):
-    """
-    :param d_model: dimension of the model
-    :param height: height of the positions
-    :param width: width of the positions
-    :return: d_model*height*width position matrix
-    """
-    if d_model % 4 != 0:
-        raise ValueError("Cannot use sin/cos positional encoding with "
-                         "odd dimension (got dim={:d})".format(d_model))
-    pe = torch.zeros(d_model, height, width)
-    # Each dimension use half of d_model
-    d_model = int(d_model / 2)
-    div_term = torch.exp(torch.arange(0., d_model, 2) *
-                         -(math.log(10000.0) / d_model))
-    pos_w = torch.arange(0., width).unsqueeze(1)
-    pos_h = torch.arange(0., height).unsqueeze(1)
-    pe[0:d_model:2, :, :] = torch.sin(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, height, 1)
-    pe[1:d_model:2, :, :] = torch.cos(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, height, 1)
-    pe[d_model::2, :, :] = torch.sin(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, width)
-    pe[d_model + 1::2, :, :] = torch.cos(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, width)
-
-    return pe.permute(1, 2, 0).unsqueeze(0).repeat(batch_size, 1, 1, 1)
-
-
-def get_physical(x, mindim, gridsize=42):
+def get_physical(x, mindim, gridsize=16):
     distance_matrix = torch.load("/home/igardner/SiDBTransformer/distance_matrix.pth")
     x = x.squeeze(1)
 
@@ -91,9 +34,9 @@ def get_physical(x, mindim, gridsize=42):
         batchnz = torch.nonzero(batch)
         for i, currenti in enumerate(batchnz):
             for j, comp_cord in enumerate(batchnz[i:]):
-                loc = comp_cord[0] * 42 + comp_cord[1]
+                loc = comp_cord[0] * gridsize + comp_cord[1]
                 rdm[batch_index][currenti[0]][currenti[1]][j] = distance_matrix[loc][currenti[0]][currenti[1]]
-                loc2 = currenti[0] * 42 + currenti[1]
+                loc2 = currenti[0] * gridsize + currenti[1]
                 rdm[batch_index][comp_cord[0]][comp_cord[1]][i] = distance_matrix[loc2][comp_cord[0]][comp_cord[1]]
 
     if mindim:
