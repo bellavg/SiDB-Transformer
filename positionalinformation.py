@@ -25,9 +25,9 @@ class BaseAbsPE(nn.Module):
 
 
 
-def get_physical(x, mindim, gridsize=16):
-    distance_matrix = torch.load("/home/igardner/SiDBTransformer/distance_matrix.pth")
-    x = x.squeeze(1)
+def get_physical(x, mindim=True, gridsize=16):
+    distance_matrix = torch.load("/home/igardner/finSiDBTransformer/16distance_matrix.pth")
+
 
     rdm = torch.zeros(x.shape[0], gridsize, gridsize, MAXDBS)
     for batch_index, batch in enumerate(x):
@@ -35,15 +35,15 @@ def get_physical(x, mindim, gridsize=16):
         for i, currenti in enumerate(batchnz):
             for j, comp_cord in enumerate(batchnz[i:]):
                 loc = comp_cord[0] * gridsize + comp_cord[1]
-                rdm[batch_index][currenti[0]][currenti[1]][j] = distance_matrix[loc][currenti[0]][currenti[1]]
+                rdm[batch_index][currenti[0]][currenti[1]][j] = distance_matrix[currenti[0]][currenti[1]][loc]
                 loc2 = currenti[0] * gridsize + currenti[1]
-                rdm[batch_index][comp_cord[0]][comp_cord[1]][i] = distance_matrix[loc2][comp_cord[0]][comp_cord[1]]
+                rdm[batch_index][comp_cord[0]][comp_cord[1]][i] = distance_matrix[comp_cord[0]][comp_cord[1]][loc2]
 
     if mindim:
         dis_neighbor = torch.where(rdm == 0, torch.tensor(100.0), rdm)
         dmn = torch.min(dis_neighbor, keepdim=True, dim=-1).values
         dmn = torch.where(dmn == 100, torch.tensor(0.0), dmn)
-        return torch.nn.functional.normalize(dmn, p=2.0, dim=-1)
+        return dmn
     else:
         return rdm
 
