@@ -14,25 +14,25 @@ checkpoint_callback2 = ModelCheckpoint(
     monitor="val_acc",
     every_n_epochs=10,
     mode="max",
-    dirpath="/home/igardner/traintest/potentiallogs/",
+    dirpath="/home/igardner/newresults/potentiallogs/",
     filename="best",
 )
 
 
-logger = CSVLogger(save_dir='/home/igardner/traintest/', name='potentiallogs')
+logger = CSVLogger(save_dir='/home/igardner/newresults/', name='potentiallogs')
 # training loop
 
-trainer = pl.Trainer(max_epochs=30, limit_train_batches=50, limit_val_batches=10, logger=logger, check_val_every_n_epoch=10, strategy='ddp_find_unused_parameters_true',
+trainer = pl.Trainer(max_epochs=EPOCHS,  logger=logger, check_val_every_n_epoch=10, strategy='ddp_find_unused_parameters_true',
                      callbacks=[checkpoint_callback2], devices=2, accelerator="gpu")
 
 potentialmodel = LitModel(pe="potential")
 trainer.fit(model=potentialmodel, train_dataloaders=train_loader, val_dataloaders=valid_loader)
 
-trainer.test(model=potentialmodel, dataloaders=test_loader, verbose=True, ckpt_path="/home/igardner/traintest/potentiallogs/best.ckpt")
+trainer.test(model=potentialmodel, dataloaders=test_loader, verbose=True, ckpt_path="/home/igardner/newresults/potentiallogs/best.ckpt")
 
 targets = torch.cat(potentialmodel.testtarget)
 predictions = torch.cat(potentialmodel.testpred)
 
 dataframe = get_classification_report(targets, predictions)
 
-dataframe.to_csv("/home/igardner/traintest/potentiallogs/testclassificationreport.csv")
+dataframe.to_csv("/home/igardner/newresults/potentiallogs/testclassificationreport.csv")
