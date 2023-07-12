@@ -27,16 +27,16 @@ class LitModel(pl.LightningModule):
         self.opname = "Adam"
         self.lr = LEARNINGRATE
         self.wd = WEIGHTDECAY
-        self.accuracylist = []
-        self.dbs = []
-        self.runtime = []
-        self.lossfn = FocalLoss(gamma=2.0, ignore_index=-1, weights=torch.tensor([2.0, 3.0]).cuda())
+        self.testpred = []
+        self.testtarget = []
+        self.lossfn = FocalLoss(gamma=2.0, ignore_index=-1)
+
 
     def training_step(self, batch, batch_idx):
         x, targets = batch
         targets = targets.reshape(-1).to(self.device)
         outputs = self.transformer(x)
-        loss = self.lossfn(outputs.cuda(), targets.cuda())  # check sizes should be b, 2, 42, 42 and b, 42, 42
+        loss = self.lossfn(outputs, targets)  # check sizes should be b, 2, 42, 42 and b, 42, 42
         self.log("train_loss", loss, logger=True, on_epoch=True, on_step=False, sync_dist=True)
         return loss
 
@@ -58,13 +58,9 @@ class LitModel(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         torch.cuda.empty_cache()
         x, targets = batch
-        targets = targets.reshape(-1).to(x.device)
-        start_time = time.time()
         outputs = self.transformer(x)
         accuracy, pred, masked_target = get_accuracy(outputs, targets)
-        end_time = time.time()
         self.log("test accuracy", accuracy, prog_bar=True, logger=True, on_epoch=True, sync_dist=True)
-        self.accuracylist.append(Tensor.cpu(accuracy))
-        self.dbs.append((len(pred)))
-        self.runtime.append(end_time-start_time)
+        self.testpred.append(torch.Tensor.cpu(pred))
+        self.testtarget.append(torch.Tensor.cpu(masked_target))
         return accuracy
