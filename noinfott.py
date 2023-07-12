@@ -6,10 +6,9 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from hyperparameters import EPOCHS
 from customloss import get_classification_report
 
-torch.cuda.empty_cache()
 
 
-logger = CSVLogger(save_dir='/home/igardner/', name='nonelogs')
+logger = CSVLogger(save_dir='/home/igardner/newresults', name='nonelogs')
 
 checkpoint_callback2 = ModelCheckpoint(
     save_top_k=1,

@@ -59,6 +59,7 @@ class LitModel(pl.LightningModule):
         torch.cuda.empty_cache()
         x, targets = batch
         outputs = self.transformer(x)
+        targets = targets.reshape(-1).to(self.device)
         accuracy, pred, masked_target = get_accuracy(outputs, targets)
         self.log("test accuracy", accuracy, prog_bar=True, logger=True, on_epoch=True, sync_dist=True)
         self.testpred.append(torch.Tensor.cpu(pred))

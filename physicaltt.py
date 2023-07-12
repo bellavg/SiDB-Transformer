@@ -3,7 +3,7 @@ from lightningwrapper import *
 from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from hyperparameters import EPOCHS
-from old.basetest import get_classification_report
+from customloss  import get_classification_report
 
 torch.cuda.empty_cache()
 
